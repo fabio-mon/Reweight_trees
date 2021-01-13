@@ -1,2 +1,30 @@
-# Reweight_trees
-Reweight HHWWgg trees
+Reweight samples.
+=========
+-Prepare flashgg output tree files.
+-----------
+The name of the sample should like this:
+GluGluToHHTo2G2l2nu_node_1_2017.root
+"{process}_{node_X}_{year}.root"
+
+-Customize some variables inside the C programs.
+------ 
+![96ddabcc73b861ae918aee099047ec56.png](:/59caf59d2f9542069ea164ef037ab28c)
+You need to provide the Process name,year, target node and input_node.
+
+Then you can change the vector of cats.
+Set your categroy inside this cats vector.By default,there are two cats(HHWWggTag_2 and HHWWggTag_3).
+I have added many systematics into the systematics vector.
+If you have any other systematics, please add them into systematics vector,too.
+
+Onece you complete these two steps.
+then you can run this program.It will return a new root file and one validation plots.
+The output file named {process}_{node_X}_{year}_reweighted.root
+
+
+
+
+
+
+
+
+
