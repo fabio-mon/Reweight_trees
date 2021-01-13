@@ -35,10 +35,10 @@
 void Reweight_test(){
 TString Process = "GluGluToHHTo2G2l2nu";
 TString year = "2017";
-vector<string> target_nodes{"1","2","3","4","5","6","7","8","9","10","11","12","SM"};
-// vector<string> nodes{"1"};
-TString input_node = "2";
-TString InputFile = "./" + Process + "_node_" + input_node + "_" + year + ".root";
+// vector<string> target_nodes{"1","2","3","4","5","6","7","8","9","10","11","12","SM"};
+vector<string> nodes{"SM"};
+TString input_node = "SM";
+TString InputFile = "/eos/user/a/atishelm/ntuples/HHWWgg_flashgg/January_2021_Production/2017/Signal/FL_LO_2017_hadded/" + Process + "_node_" + input_node + "_" + year + ".root";
 TFile *output;
 TString target_node = "1";
 for (auto node_index = target_nodes.begin(); node_index != target_nodes.end(); node_index++){//nodes loop
@@ -2239,8 +2239,11 @@ TH1D* ReweightHist_=(TH1D*)((TH1D*)ReWeightFile->Get(ReweightName));
   target->Scale(h2->Integral()/target->Integral());
   double maxY=max(max(target->GetMaximum(),h_genMhh->GetMaximum()),h2->GetMaximum());
   h2->GetYaxis()->SetRangeUser(0, 1.35*maxY);
+  h2->Scale(1/h2->Integral());
   h2->Draw("hist");
+  target->Scale(1/target->Integral());
   target->Draw("hist,same");
+  h_genMhh->Scale(1/h_genMhh->Integral());
   h_genMhh->Draw("hist,same");
   legend->Draw("same");
   TString PdfName = "output/" + TreeName + "_node_" + input_node + "_To_node_" + target_node + ".pdf";
