@@ -4,6 +4,7 @@ Reweight samples.
 -----------
 The name of the sample should like this:
 GluGluToHHTo2G2l2nu_node_1_2017.root
+
 "{process}_{node_X}_{year}.root"
 
 -Customize some variables inside the C programs.
