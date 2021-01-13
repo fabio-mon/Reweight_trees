@@ -2227,7 +2227,7 @@ TH1D* ReweightHist_=(TH1D*)((TH1D*)ReWeightFile->Get(ReweightName));
   target->Draw("hist,same");
   h_genMhh->Draw("hist,same");
   legend->Draw("same");
-  TString PlotName = TreeName + ".pdf";
+  TString PlotName = "output/" + TreeName + ".pdf";
   c1->Print(PlotName);
   if( sys == "" || cat == "HHWWggTag_3"){
   cout<<"BREAK"<<endl;
