@@ -8,7 +8,7 @@ GluGluToHHTo2G2l2nu_node_1_2017.root
 
 -Customize some variables inside the C programs.
 ------ 
-![96ddabcc73b861ae918aee099047ec56.png](:/59caf59d2f9542069ea164ef037ab28c)
+![image](https://github.com/chuwang1/Reweight_trees/blob/main/Variables.png)
 You need to provide the Process name,year, target node and input_node.
 
 Then you can change the vector of cats.
