@@ -35,15 +35,21 @@
 void Reweight_test(){
 TString Process = "GluGluToHHTo2G2l2nu";
 TString year = "2017";
-TString target_node = "1";
-TString input_node = "10";
+vector<string> target_nodes{"1","2","3","4","5","6","7","8","9","10","11","12","SM"};
+// vector<string> nodes{"1"};
+TString input_node = "2";
 TString InputFile = "./" + Process + "_node_" + input_node + "_" + year + ".root";
-TString outputFile = "./" + Process + "_node_" + input_node + "_" + year + "_reweighted.root";
+TFile *output;
+TString target_node = "1";
+for (auto node_index = target_nodes.begin(); node_index != target_nodes.end(); node_index++){//nodes loop
+target_node = (*node_index).c_str();
+TString outputFile = "./" + Process + "_node_" + input_node + "_To_node_" + target_node + "_" + year + "_reweighted.root";
 TFile MC_file(InputFile);
-TFile *output = new TFile(outputFile, "RECREATE");
+output = new TFile(outputFile, "RECREATE");
 output->mkdir("tagsDumper/trees");
 TTree* fChain;
 // vector<string> cats{"HHWWggTag_0","HHWWggTag_1","HHWWggTag_2","HHWWggTag_3"};
+// vector<string> cats{"HHWWggTag_3","HHWWggTag_2"};
 vector<string> cats{"HHWWggTag_2"};
 vector<string> systematics{""};
 // vector<string> systematics{"","FNUFEB","FNUFEE","JECAbsolute2017","JECAbsolute","JECBBEC12017",
@@ -57,17 +63,13 @@ vector<string> systematics{""};
 // "metJecUncertainty","metJerUncertainty","metPhoUncertainty","metUncUncertainty"};
 vector<string> shifts{"Up","Down"};
 TString TreeName;
-for (auto i = cats.begin(); i != cats.end(); i++){
-  cout<<"start cat trun"<<endl;
-cout<<(*i).c_str()<<endl;
+for (auto i = cats.begin(); i != cats.end(); i++){//cats loop
 TString cat=(*i).c_str();
 TString catName="tagsDumper/trees/" + Process + "_node_" + input_node + "_13TeV_" + cat;
-for (auto j = systematics.begin(); j != systematics.end(); j++){
-  cout<<"start sys trun"<<endl;
+for (auto j = systematics.begin(); j != systematics.end(); j++){//sys loop`
 
 TString sys=(*j).c_str();
-for (auto k = shifts.begin(); k != shifts.end(); k++){
-  cout<<"start shift trun"<<endl;
+for (auto k = shifts.begin(); k != shifts.end(); k++){//up and down shift 
 TString shift=(*k).c_str();
 if ( sys == "" )
 {
@@ -79,8 +81,8 @@ else
 }
 cout<<TreeName<<endl;
 MC_file.GetObject(TreeName,fChain);
-TFile* ReWeightFile = TFile::Open("./reweight_HH_fake.root");
-TString ReweightName = year + "_" + target_node + "_NLO_div_" + input_node + "_LO_fake";
+TFile* ReWeightFile = TFile::Open("./reweight_HH_fake.root");//Petr's reweight file
+TString ReweightName = year + "_" + target_node + "_NLO_div_" + input_node + "_LO_fake";//Petr's histgram
 TH1D* ReweightHist_=(TH1D*)((TH1D*)ReWeightFile->Get(ReweightName));
    Float_t Reweight;
    Int_t           candidate_id;
@@ -2162,27 +2164,30 @@ TH1D* ReweightHist_=(TH1D*)((TH1D*)ReWeightFile->Get(ReweightName));
    output->cd("tagsDumper/trees");
    TTree *newtree = fChain->CloneTree(0);
    int nevents=fChain->GetEntries();
-   newtree->Branch("Reweight", &Reweight, "Reweight/F");
-   double extra_weights=1;
+   // int nevents=10;
    double N_weighted_events=0;
    double XS_Ratio = 1.;//Reweight SF from Petr's histgrams
-   for (int i = 0; i< nevents; i=i+1){//get extra_weights
-     fChain->GetEntry(i);
-     if (genMhh<1030 && genMhh>250 ){
-     N_weighted_events +=1;
-     }
-   }
-   extra_weights=nevents/N_weighted_events;
+
   TH1D *h3 = new TH1D("h3","h3",100,0,2000);//get scale factors
+  double MHH;
   for (int i = 0; i< nevents; i=i+1){
       fChain->GetEntry(i);
-      XS_Ratio = ReweightHist_->GetBinContent(ReweightHist_->FindBin(genMhh));
-      Reweight = 1;
-      Reweight = XS_Ratio*extra_weights*weight;
-      h3->Fill(genMhh,Reweight);
+      if( genMhh >= 1030){
+        MHH=1030;
+        }
+      else if (genMhh <= 250){
+        MHH=250;
+      }
+      else {
+        MHH = genMhh;
+      }
+      XS_Ratio = ReweightHist_->GetBinContent(ReweightHist_->FindBin(MHH));
+      // Reweight = 1;
+      weight = XS_Ratio*weight;
+      h3->Fill(genMhh,weight);//Fill weighted histgrams(not reweight, just applied origin weights)
       // cout<<"Reweight:"<<Reweight<<" mhh:"<<genMhh<<"extra_weights:"<<extra_weights<<"XS_Ratio:"<<XS_Ratio<<endl;
    }
-
+ //below used genMhh to get the Scale Factors to insure that number of weighted events doesn't change.
   TCanvas *c1 = new TCanvas("reconstruction1","reconstruction1");
   TString genMhh_var = "genMhh>>Histo_genMhh_temp(100,0,2000)";
   fChain->Draw(genMhh_var, "weight*1");
@@ -2190,21 +2195,28 @@ TH1D* ReweightHist_=(TH1D*)((TH1D*)ReWeightFile->Get(ReweightName));
   double Scale_new= h_genMhh->Integral()/h3->Integral();
   ReweightHist_->Scale(Scale_new);//applied scale Factors
   c1->Clear();
-  for (int i = 0; i< nevents; i=i+1){//Fill tree
+  for (int i = 0; i< nevents; i=i+1){//Fill new tree, change the weight value
       fChain->GetEntry(i);
-      XS_Ratio = ReweightHist_->GetBinContent(ReweightHist_->FindBin(genMhh));
-      Reweight = XS_Ratio*extra_weights*weight;
+      if( genMhh >= 1030){
+        MHH=1030;
+        }
+      else if (genMhh <= 250){
+        MHH=250;
+      }
+      else {
+        MHH = genMhh;
+      }
+      XS_Ratio = ReweightHist_->GetBinContent(ReweightHist_->FindBin(MHH));
+      weight = XS_Ratio*weight;
       // cout<<"Reweight:"<<Reweight<<" mhh:"<<genMhh<<"extra_weights:"<<extra_weights<<"XS_Ratio:"<<XS_Ratio<<endl;
       if ( dipho_pt > 0){
+      // cout<<"Final:"<<weight<<endl;
       newtree->Fill();
       }
   }
-  cout<<"start write tree"<<endl;
-  newtree->GetBranch("weight")->SetName("weight_old");
   newtree->Write();
-  cout<<"end write tree"<<endl;
-
-  TH1D *h2 = new TH1D("h2","h2",100,0,2000);
+//plot validate plot
+  TH1D *h2 = new TH1D("h2","Reweight LO node "+input_node +" to NLO node "+target_node,100,0,2000);//reweighted  histgrams
   h_genMhh->SetLineColor(6);
   h2->SetLineColor(3);
   h2->SetLineStyle(1);
@@ -2212,35 +2224,41 @@ TH1D* ReweightHist_=(TH1D*)((TH1D*)ReWeightFile->Get(ReweightName));
   h2->SetMarkerColor(1);
   h2->SetMarkerStyle(20);
   h2->SetMarkerSize(0.8);
+  h2->SetStats(kFALSE);
   TLegend *legend;
   legend = new TLegend(0.69,0.75,0.89,0.9);
-  legend->AddEntry(h2,"Reweighted nodes","l");
+  legend->AddEntry(h2,"Reweighted:LO node "+input_node,"l");
   h_genMhh->SetLineColor(6);
-  legend->AddEntry(h_genMhh,"Unweighted nodes","l");
-  newtree->Project("h2","genMhh", "Reweight");
-  // cout<<h_genMhh->Integral()<<"Diff "<<h2->Integral()<<endl;
+  legend->AddEntry(h_genMhh,"Unreweighted:LO node "+input_node,"l");
+  newtree->Project("h2","genMhh", "weight");
+  cout<<"unreweighted events: "<<h_genMhh->Integral()<<",reweighted events "<<h2->Integral()<<endl;
   TString targetHist = year + "_" + target_node + "_NLO";
-  TH1D* target=(TH1D*)((TH1D*)ReWeightFile->Get(targetHist));
-  legend->AddEntry(target,"target nodes","l");
+  // TString targetHist = year + "_1_LO_fake";
+  TH1D* target=(TH1D*)((TH1D*)ReWeightFile->Get(targetHist));//target hisgrams from Petr's reweight file.
+  legend->AddEntry(target,"target:NLO node "+target_node,"l");
   target->Scale(h2->Integral()/target->Integral());
+  double maxY=max(max(target->GetMaximum(),h_genMhh->GetMaximum()),h2->GetMaximum());
+  h2->GetYaxis()->SetRangeUser(0, 1.35*maxY);
   h2->Draw("hist");
   target->Draw("hist,same");
   h_genMhh->Draw("hist,same");
   legend->Draw("same");
-  TString PlotName = "output/" + TreeName + ".pdf";
-  c1->Print(PlotName);
-  if( sys == "" || cat == "HHWWggTag_3"){
-  cout<<"BREAK"<<endl;
+  TString PdfName = "output/" + TreeName + "_node_" + input_node + "_To_node_" + target_node + ".pdf";
+  TString PngName = "output/" + TreeName + "_node_" + input_node + "_To_node_" + target_node + ".png";
+  c1->Print(PdfName);
+  c1->Print(PngName);
+//plot validate plot
+
+  if( sys == ""){
   break;
   }
-  cout<<"end shift trun"<<endl;
-}
+}// up and down shift 
   if( cat == "HHWWggTag_3"){
   break;
   }
-  cout<<"end sys trun"<<endl;
-}
-  cout<<"end cat trun"<<endl;
-}
+}//sys loop
+}//cats loop
+}//nodes loop
 output->Close();
 }
+
