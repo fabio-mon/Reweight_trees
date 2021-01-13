@@ -10,7 +10,11 @@ GluGluToHHTo2G2l2nu_node_1_2017.root
 -Customize some variables inside the C programs.
 ------ 
 ![image](https://github.com/chuwang1/Reweight_trees/blob/main/Variables.png)
-You need to provide the Process name,year, target node and input_node.
+You need to provide: 
+-Process name,
+-year, 
+-target_nodes(you can put more than one nodes at here.) 
+-input_node(your sample's node).
 
 Then you can change the vector of cats.
 Set your categroy inside this cats vector.By default,there are two cats(HHWWggTag_2 and HHWWggTag_3).
