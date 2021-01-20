@@ -36,7 +36,7 @@ void Reweight_test(){
   TString Process = "GluGluToHHTo2G2l2nu";
   TString year = "2017";
   // vector<string> target_nodes{"1","2","3","4","5","6","7","8","9","10","11","12","SM"};
-  vector<string> nodes{"SM"};
+  vector<string> target_nodes{"SM"};
   TString input_node = "SM";
   TString InputFile = "/eos/user/a/atishelm/ntuples/HHWWgg_flashgg/January_2021_Production/2017/Signal/FL_LO_2017_hadded/" + Process + "_node_" + input_node + "_" + year + ".root";
   TFile *output;
