@@ -85,7 +85,7 @@ for fulltreename in options.intreenames.split(','):
     else:
         infolders.append("")
         intreenames.append(fulltreename)
-'''
+
 for outputnode in options.outputnodes.split(','):
     print "reweight %s --> %s"%(options.inputnode,outputnode)
 
@@ -146,7 +146,7 @@ for outputnode in options.outputnodes.split(','):
         
         outtree.AutoSave()
     outfile.Close()
-'''        
+        
 infile.Close()
 
 
