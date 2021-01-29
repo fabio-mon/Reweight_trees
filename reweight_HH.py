@@ -3,38 +3,37 @@ import ROOT
 from optparse import OptionParser
 from array import array
 
-def load_mHH_shapes(inputshapesLO, inputshapesNLO):
+def load_mHH_shapes(inputshapesFAKE, inputshapes):
     mHH_shapes={}
     benchmarks = ["SM","1","2","3","4","5","6","7","8","9","10","11","12"]
 
-    #load LO shapes
-    infileLO = ROOT.TFile(inputshapesLO)
+    #load LO FAKE shapes
+    infileFAKE = ROOT.TFile(inputshapesFAKE)
     for benchmark in benchmarks:
-        for year in ["2016","2017"]:
+        for year in ["2016","2017","2018"]:
             objectname = year+"_"+benchmark+"_LO_fake"
-            benchmarkname = "LO"+benchmark
-            if year=="2017":
-                benchmarkname+="fake"
-            mHH_shapes[benchmarkname] = infileLO.Get(objectname)
+            benchmarkname = "LO"+benchmark+"fake"+year
+            mHH_shapes[benchmarkname] = infileFAKE.Get(objectname)
             mHH_shapes[benchmarkname].SetDirectory(0)
-    infileLO.Close()
+    infileFAKE.Close()
 
-    #load NLO shapes
-    infileNLO = ROOT.TFile(inputshapesNLO)
+    #load LO and NLO shapes
+    infile = ROOT.TFile(inputshapes)
     for benchmark in benchmarks:
-        objectname = "EFT_"+benchmark+"_NLO"
-        benchmarkname = "NLO"+benchmark
-        mHH_shapes[benchmarkname] = infileNLO.Get(objectname)
-        mHH_shapes[benchmarkname].SetDirectory(0)
+        for order in ["LO","NLO"]:
+            objectname = "EFT_"+benchmark+"_"+order
+            benchmarkname = order+benchmark
+            mHH_shapes[benchmarkname] = infile.Get(objectname)
+            mHH_shapes[benchmarkname].SetDirectory(0)
     #add also anomalous LO and NLO kl
     for extrabenchmark in ["cHHH0","cHHH2","cHHH5"]:
         for order in ["LO","NLO"]:
             objectname = "EFT_"+extrabenchmark+"_"+order
             benchmarkname = order+extrabenchmark
-            mHH_shapes[benchmarkname] = infileNLO.Get(objectname)
+            mHH_shapes[benchmarkname] = infile.Get(objectname)
             mHH_shapes[benchmarkname].SetDirectory(0)
 
-    infileNLO.Close()
+    infile.Close()
 
     return mHH_shapes
 
@@ -60,8 +59,8 @@ parser.add_option("--mHHbranchname",   default="genMhh",                        
 parser.add_option("--inputnode",       default="",                               help="Node used for generation")
 parser.add_option("--outputnodes",     default="NLOSM,NLO2,NLOcHHH2p45,NLOcHH5", help="Target nodes")
 parser.add_option("--outdir",          default="./rew/",                         help="Output dir for plots")
-parser.add_option("--inputshapesLO",   default="./reweight_HH_fake.root",        help="Input shapes for LO benchmarks")
-parser.add_option("--inputshapesNLO",  default="./reweight_HH.root",             help="Input shapes for NLO benchmarks")
+parser.add_option("--inputshapesFAKE",   default="./reweight_HH_fake.root",        help="Input shapes for LO benchmarks")
+parser.add_option("--inputshapes",  default="./reweight_HH.root",             help="Input shapes for NLO benchmarks")
 parser.add_option("--ValidationPlots", action="store_true", default=False,       help="Produce validation plots" )
 
 (options,args)=parser.parse_args()
@@ -70,7 +69,7 @@ parser.add_option("--ValidationPlots", action="store_true", default=False,      
 # mHH_shapes should be used as mHH_shapes[<order><benchmark>]
 # e.g. mHH_shapes["LOSM"], or mHH_shapes["LO6fake"] 
 print "Loading mHH shapes"
-mHH_shapes=load_mHH_shapes(options.inputshapesLO, options.inputshapesNLO) 
+mHH_shapes=load_mHH_shapes(options.inputshapesFAKE, options.inputshapes) 
 
 print "Opening ",options.infilename
 infile = ROOT.TFile(options.infilename,"READ")
